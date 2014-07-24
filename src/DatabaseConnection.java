@@ -35,6 +35,7 @@ public class DatabaseConnection {
 			if (con!=null){
 				connected=true;
 			}
+			
         }
         catch(SQLException ex ) {
 			System.out.println("SQLException: " + ex.getMessage()); 
@@ -42,7 +43,8 @@ public class DatabaseConnection {
             System.out.println("VendorError: " + ex.getErrorCode());
 			ex.printStackTrace();
         }
-        finally {return connected;}
+        //finally {}
+		return connected;
     }
 	
 	public void doWriteText(UserInterface ui){
