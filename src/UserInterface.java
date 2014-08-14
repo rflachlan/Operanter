@@ -69,13 +69,13 @@ public class UserInterface extends JPanel implements ActionListener{
 	JScrollPane scrollPane;
 	
 	
-	String[] chamber={"-", "1", "2", "3", "4", "5", "6", "7", "8"};
+	String[] chamber={"1", "2", "3", "4", "5", "6", "7", "8"};
 	
 	JComboBox chamberBox=new JComboBox(chamber);
 	
 	JComboBox soundChannel;
 	
-	JLabel stimA, stimB, soundLabel;
+	JLabel stimA, stimB, soundLabel, chamberLabel;
 	
 	boolean isStimASetup=false;
 	boolean isStimBSetup=false;
@@ -141,7 +141,13 @@ public class UserInterface extends JPanel implements ActionListener{
 		topPanel.add(format);
 		topPanel.add(experimentTypeL);
 		//topPanel.add(soundChannel);
-		topPanel.add(chamberBox);
+		
+		JPanel chamberPanel=new JPanel();
+		chamberLabel=new JLabel("Chamber number");
+		chamberPanel.add(chamberLabel);
+		chamberPanel.add(chamberBox);
+		
+		topPanel.add(chamberPanel);
 		
 		
 		JPanel stimulusPanel=new JPanel(new BorderLayout());
