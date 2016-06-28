@@ -4,18 +4,19 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.Calendar;
-
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
+import javax.swing.JTextArea;
 import javax.swing.SpinnerDateModel;
 
 import javax.swing.plaf.basic.BasicSpinnerUI;
@@ -34,107 +35,114 @@ public class StatsPanel extends JPanel implements ActionListener{
 	JSpinner calcTime;
 	Operanter op;
 	Defaults defaults;
-	String[] componentList;
 	Scheme scheme;
 	DigitalOutput d;
-	JLabel[] componentLabels;
 	JPanel labels, topPanel;
 	DatabaseConnection dbc;
 	LogEvent[] le;
-	
-	Font font=new Font("Sans-Serif", Font.PLAIN, 10);
+	JTextArea output=new JTextArea();
 
 
 	public StatsPanel(Defaults defaults, Scheme scheme, DatabaseConnection dbc){
-		
-		long timeCalcFrom=defaults.getIntProperty("timecalcfrom", 68400000);
-		
+
+
 		this.setPreferredSize(new Dimension(700, 400));
 		this.defaults=defaults;
 		this.scheme=scheme;
 		this.dbc=dbc;
-		this.setFont(font);
 		
 		this.setLayout(new BorderLayout());
 		JPanel topPanel=new JPanel(new FlowLayout());
 		
-		calcLabel = new JLabel("Calc from this far back:");
+		calcLabel = new JLabel("Calc from:");
 		topPanel.add(calcLabel);
 
 		calcTime = new JSpinner( new SpinnerDateModel() );
-		JSpinner.DateEditor timeEditor = new JSpinner.DateEditor(calcTime, "HH:mm:ss");
+		JSpinner.DateEditor timeEditor = new JSpinner.DateEditor(calcTime, "yyyy-MM-dd HH:mm:ss");
 		timeEditor.getFormat().setTimeZone(TimeZone.getTimeZone("UTC"));
 		calcTime.setEditor(timeEditor);
-		calcTime.setValue(new Date(timeCalcFrom));
+	//	calcTime.setValue(datenow);
 		setJSpinnerButtonSize(calcTime);
 		topPanel.add(calcTime);
 
 		calc.addActionListener(this);
 		topPanel.add(calc);
 		
+		
 		this.add(topPanel, BorderLayout.PAGE_START);
-		
-		createComponentLabels();
-		changeFont(font, this);
-		
-
-
+		this.add(output);
 
 	}
-	
-	public void createComponentLabels(){
-		JPanel labels = new JPanel();
-		labels.setLayout(new GridLayout(0,1));
-		String[] componentList = new String[scheme.getComponentNames().length];
-		componentList = scheme.getComponentNames();
-		JLabel[] componentLabels = new JLabel[componentList.length];
-		for (int i=0; i<componentList.length; i++){
-			componentLabels[i]=new JLabel(componentList[i]);
-			labels.add(componentLabels[i]);
-		}
-		this.add(labels);
-	}
 
 
-	public void calculateStats(long timeCalcFrom){
-		//TODO Figure out how to read through a LogEvent array to "find" certain things.
-		//At least not getting any errors...
+	public LogEvent[] getLogEventList(){
 		
-		Calendar cal = Calendar.getInstance();
-		long d = cal.getTimeInMillis();
-		timeCalcFrom= d - timeCalcFrom;
+		Date d = (Date)calcTime.getValue();
+		long timeCalcFrom=d.getTime();
+	//	System.out.println("calcTime: "+timeCalcFrom);
+
+		//Calendar cal = Calendar.getInstance();
+		//long d2 = cal.getTimeInMillis();
+		//timeCalcFrom = d2 - timeCalcFrom;
+		
+		//defaults.setIntProperty("timecalcfrom", (int)timeCalcFrom);
+		//defaults.writeProperties();
 
 		le = defaults.dbc.readFromDatabase(timeCalcFrom);
 		
-		String[] componentList = new String[scheme.getComponentNames().length];
-		for (int i=0; i<scheme.getComponentNames().length; i++);{
-			//TODO Compare the names to the actionName in LogEvent array. AAAAAAAAAAH. 
+		return le;
+
+	}
+	
+	
+	public void countOccurrence(LogEvent[] le){
+		String[] objectColumn = new String[le.length];
+		
+		
+		for (int i=0; i<le.length; i++){
+			objectColumn[i] = le[i].objectName + " (" + le[i].actionName + ")";
+		}
+		
+		HashMap<String, Integer> countMap = new HashMap<String, Integer>();
+		for (String string : objectColumn){
+			if (!countMap.containsKey(string)){
+				countMap.put(string, 1);
+			}
+			else{
+				Integer count = countMap.get(string);
+				count = count + 1;
+				countMap.put(string, count);
+			}
+		}
+		output.setText(null);
+		printCount(countMap);
+	}
+	
+	public void printCount(HashMap<String, Integer> countMap){
+		
+		Set<String> keySet = countMap.keySet();
+		for (String string : keySet){
+
+			output.append(string + " : " + countMap.get(string) + "\n");
+		//	System.out.println(string + " : " + countMap.get(string));
+
 		}
 
 	}
-
+	
 
 
 	public void actionPerformed(ActionEvent e) {
 		Object object=e.getSource();
 		if (object.equals(calc)){
-			Date d = (Date)calcTime.getValue();
-			long timeCalcFrom=d.getTime();
-			System.out.println("calcTime: "+timeCalcFrom);
-			defaults.setIntProperty("timecalcfrom", (int)timeCalcFrom);
-
-			defaults.writeProperties();
-
-			calculateStats(timeCalcFrom);
+			LogEvent[] list = getLogEventList();
+			countOccurrence(list);
 		}
-
-
-
 	}
 
 
 	public void setJSpinnerButtonSize(JSpinner spinner){
-		spinner.setPreferredSize(new Dimension(150, 75));
+		spinner.setPreferredSize(new Dimension(200, 75));
 
 		spinner.setUI(new BasicSpinnerUI(){
 			protected Component createPreviousButton(){
@@ -147,13 +155,6 @@ public class StatsPanel extends JPanel implements ActionListener{
 		});
 	}
 	
-	public static void changeFont (Font font, JPanel pane){
-		
-	    for (Component child : pane.getComponents()){
-	            child.setFont(font);
-	    }
-	}
-
 }
 
 

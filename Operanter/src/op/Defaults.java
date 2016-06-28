@@ -20,7 +20,7 @@ import SoundPlayback.SoundConfig;
 import com.pi4j.io.gpio.GpioController;
 
 import db.DatabaseConnection;
-import devices.EnergeniePiMote;
+import devices.DigitalOutput;
 import devices.MotorPWMOutput;
 
 public class Defaults {
@@ -36,7 +36,7 @@ public class Defaults {
 	boolean virtualMode=false;
 	public SoundConfig sc;
 	LinkedList<String> schemeIds;
-	EnergeniePiMote epm;
+	DigitalOutput light;
 	MotorPWMOutput mpo;
 	
 	public Defaults(){
@@ -45,12 +45,12 @@ public class Defaults {
 		readProperties();
 	}
 	
-	public void setPiMote(EnergeniePiMote epm){
-		this.epm=epm;
+	public void setLights(DigitalOutput light){
+		this.light=light;
 	}
 	
-	public EnergeniePiMote getPiMote(){
-		return epm;
+	public DigitalOutput getLights(){
+		return light;
 	}
 
 	public void setFoodHatch(MotorPWMOutput mpo){

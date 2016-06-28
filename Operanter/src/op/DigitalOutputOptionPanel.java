@@ -48,13 +48,6 @@ public class DigitalOutputOptionPanel extends JPanel{
 		SpinnerModel modelOneSec1 = new SpinnerNumberModel(1000,0,10000,1000);
 		SpinnerModel modelOne1 = new SpinnerNumberModel(1,0,10,1);
 		
-
-
-
-
-		
-		
-		
 		JLabel stlab=new JLabel("Standard response type: ");
 		stlab.setFont(font);
 		this.add(stlab);
@@ -69,10 +62,6 @@ public class DigitalOutputOptionPanel extends JPanel{
 		
 		JLabel sllab=new JLabel("Standard pulse length (ms): ");
 		this.add(sllab);
-		/*standardLengthField=new JFormattedTextField(num);
-		standardLengthField.setColumns(10);
-		standardLengthField.setValue(new Integer(diout.standardLength));
-		this.add(standardLengthField);*/
 		standardLengthField=new JSpinner(modelOneSec);
 		standardLengthField.setValue(new Integer(diout.standardLength));
 		setJSpinnerButtonSize(standardLengthField);
@@ -80,10 +69,6 @@ public class DigitalOutputOptionPanel extends JPanel{
 		
 		JLabel allab=new JLabel("Alternative pulse length (ms): ");
 		this.add(allab);
-		/*altLengthField=new JFormattedTextField(num);
-		altLengthField.setColumns(10);
-		altLengthField.setValue(new Integer(diout.altLength));
-		this.add(altLengthField);*/
 		altLengthField=new JSpinner(modelOneSec1);
 		JComponent editorAlt = altLengthField.getEditor();
 		JFormattedTextField tf2 = ((JSpinner.DefaultEditor) editorAlt).getTextField();
@@ -108,10 +93,6 @@ public class DigitalOutputOptionPanel extends JPanel{
 		
 		JLabel srlab=new JLabel("Standard number flash reps: ");
 		this.add(srlab);
-		/*standardFlashRepsField=new JFormattedTextField(num);
-		standardFlashRepsField.setColumns(10);
-		standardFlashRepsField.setValue(new Integer(diout.standardFlashReps));
-		this.add(standardFlashRepsField);*/
 		standardFlashRepsField=new JSpinner(modelOne);
 		JComponent editorFlash = standardFlashRepsField.getEditor();
 		JFormattedTextField tf3 = ((JSpinner.DefaultEditor) editorFlash).getTextField();
@@ -122,10 +103,6 @@ public class DigitalOutputOptionPanel extends JPanel{
 		
 		JLabel arlab=new JLabel("Alternative number flash reps: ");
 		this.add(arlab);
-		/*altFlashRepsField=new JFormattedTextField(num);
-		altFlashRepsField.setColumns(10);
-		altFlashRepsField.setValue(new Integer(diout.altFlashReps));
-		this.add(altFlashRepsField);*/
 		altFlashRepsField=new JSpinner(modelOne1);
 		JComponent editorFlashAlt = altFlashRepsField.getEditor();
 		JFormattedTextField tf4 = ((JSpinner.DefaultEditor) editorFlashAlt).getTextField();
@@ -150,7 +127,6 @@ public class DigitalOutputOptionPanel extends JPanel{
 		int at=alternativeType.getSelectedIndex();
 		if (at>=0){
 			diout.alternativeType=at;
-		//	System.out.println("Setting alt type");
 		}
 		
 		int p1=(int)((Number)standardLengthField.getValue()).intValue();

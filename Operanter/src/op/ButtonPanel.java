@@ -20,6 +20,12 @@ public class ButtonPanel extends JPanel{
 	JRadioButton alt=new JRadioButton("alt");
 	DigitalOutput d;
 	
+	/**
+	 * Creates the button panel for digital output for
+	 * Direct Control tab (i.e. LED, lights).
+	 * @param d the digital output (i.e. LED or lights)
+	 * @param a an Action Listener
+	 */
 	public ButtonPanel(DigitalOutput d, ActionListener a){
 		this.setLayout(new BorderLayout());
 		this.d=d;

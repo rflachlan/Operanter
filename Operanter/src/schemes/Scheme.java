@@ -26,14 +26,14 @@ public class Scheme {
 	DigitalIO starter;
 	int starterCode=0;
 	
-	EnergeniePiMote defaultPiMote;
+	DigitalOutput defaultLight;
 	MotorPWMOutput defaultFoodHatch;
 	
 	Timer timer;
 	
 	public Scheme(Defaults defaults, String exptName){
 		this.defaults=defaults;
-		this.defaultPiMote=defaults.getPiMote();
+		this.defaultLight=defaults.getLights();
 		this.defaultFoodHatch=defaults.getFoodHatch();
 		this.experimentName=exptName;
 	}
@@ -52,7 +52,7 @@ public class Scheme {
 			pls[i].turnOn();
 		}
 		for (int i=0; i<dos.length; i++){
-			if (dos[i]!=defaultPiMote){
+			if (dos[i]!=defaultLight){
 				dos[i].turnOn();
 			}
 			else{
@@ -74,7 +74,7 @@ public class Scheme {
 			pls[i].turnOff();
 		}
 		for (int i=0; i<dos.length; i++){
-			if (dos[i]!=defaultPiMote){
+			if (dos[i]!=defaultLight){
 				dos[i].turnOff();
 			}
 			else{
@@ -99,7 +99,7 @@ public class Scheme {
 	
 	public void unload(){
 		for (int i=0; i<dos.length; i++){
-			if (dos[i]!=defaultPiMote){
+			if (dos[i]!=defaultLight){
 				dos[i].shutdown();
 			}
 		}

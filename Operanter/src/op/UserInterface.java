@@ -58,23 +58,24 @@ public class UserInterface extends JPanel{
 		
 	}
 	
-	public boolean shutDown(){
+	public void shutDown(){
 		boolean close=true;
 		
 		int n = JOptionPane.showConfirmDialog(this,"Do you really want to stop and close down this experiment?","Confirm shut down", JOptionPane.YES_NO_OPTION);
 		if (n==0){
 			close=true;
-			//if (started){
-				//scheme.stopRecording();
-			//}
-			//op.disconnect();
 		}
 		else{
 			close=false;
 		}
 		
-		return close;
+		if(close){
+			op.dataDump();
+			op.stopRecording();
+			System.exit(0);
+		}
 	}
+
 
 	
 	public void update(){

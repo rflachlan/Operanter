@@ -1,4 +1,11 @@
 package op;
+//
+//Operanter.java
+//Operanter
+//
+//Created by Robert Lachlan on 3/31/10.
+//Copyright (c) 2010 __MyCompanyName__. All rights reserved.
+//
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -33,8 +40,7 @@ import com.pi4j.io.gpio.Pin;
 import com.pi4j.io.gpio.RaspiPin;
 
 import devices.MotorPWMOutput;
-//import devices.EnergeniePiMote;
-//import schemes.Scheme;
+
 
 public class SchedulePane extends JPanel implements ActionListener, ChangeListener{
 	
@@ -48,13 +54,20 @@ public class SchedulePane extends JPanel implements ActionListener, ChangeListen
 	OButton setTime=new OButton("Set Sys Time", dim);
 	OButton dumpData=new OButton("<html><center>" + "Set Data Dump" + "</center></html>", dim);
 	JSpinner lightsOn, lightsOff, eStart, eStop, maxHatchClosed, openDuration;
-	JLabel opVersion=new JLabel("0.2.0 Date: 26/4/16");
+	JLabel opVersion=new JLabel("1.3.0 Date: 27/6/16");
 
 	long zeroTime=0l;
 	Operanter op;
 	Defaults defaults;
 	MotorPWMOutput mpo;
 	
+	/**
+	 * Initialises the SchedulePane with all the JSpinners and buttons.
+	 * NB: Timezone settings are important or else the timers will be off
+	 * by an hour in summer.
+	 * @param defaults the desired defaults setup
+	 * @param op the desired operanter setup
+	 */
 	public SchedulePane (Defaults defaults, Operanter op) {
 		this.setPreferredSize(new Dimension(700, 400));
 		this.defaults=defaults;
@@ -176,6 +189,10 @@ public class SchedulePane extends JPanel implements ActionListener, ChangeListen
 	
 	}
 	
+	/**
+	 * Sets the preferred JSpinner size to dimensions selected.
+	 * @param spinner the JSpinner you want to edit
+	 */
 	public void setJSpinnerButtonSize(JSpinner spinner){
 		spinner.setPreferredSize(new Dimension(150, 90));
 		
@@ -192,9 +209,14 @@ public class SchedulePane extends JPanel implements ActionListener, ChangeListen
 		
 		
 
+	/**
+	 * Sets the JLabel to the dimensions selected.
+	 * @param jLabel the JLabel you want to edit
+	 */
 	public void setJLabelSize(JLabel jLabel){
 		jLabel.setPreferredSize(new Dimension(150,100));
 	}
+	
 	
 	public void actionPerformed(ActionEvent e) {
 		Object object=e.getSource();
@@ -204,13 +226,13 @@ public class SchedulePane extends JPanel implements ActionListener, ChangeListen
 		else if (object.equals(Stop)){
 			op.stopRecording();
 		}
-		else if (object.equals(On)){
+		else if (object.equals(On)){ //Manual lights on button
 			op.switchOn();
 		}
-		else if (object.equals(Off)){
+		else if (object.equals(Off)){ //Manual lights off button
 			op.switchOff();
 		}
-		else if (object.equals(setTimers)){
+		else if (object.equals(setTimers)){ //Set timers button. Also triggers motor
 			updateDefaults();
 			
 			Pin motorPin=RaspiPin.GPIO_01;
@@ -220,14 +242,14 @@ public class SchedulePane extends JPanel implements ActionListener, ChangeListen
 			op.scheduleTimers();
 			setTimers.setEnabled(false);
 		}
-		else if (object.equals(setTime)){
+		else if (object.equals(setTime)){ //Set time button. Also updates timers because changing system time changes the reference.
 			updateTime();
 			updateDefaults();
-			op.scheduleTimers(); //MM added 19/4/16
+			op.scheduleTimers();
 			setTimers.setEnabled(false);
 		}
 		
-		else if (object.equals(dumpData)){
+		else if (object.equals(dumpData)){ //Dump data button. Updates timers.
 			setDumpData();
 			updateDefaults();
 			op.scheduleTimers();
@@ -236,6 +258,9 @@ public class SchedulePane extends JPanel implements ActionListener, ChangeListen
 	
 	}
 	
+	/**
+	 * Updates the system time by sending terminal command.
+	 */
 	public void updateTime(){
 		
 		SpinnerDateModel model=new SpinnerDateModel();
@@ -261,7 +286,6 @@ public class SchedulePane extends JPanel implements ActionListener, ChangeListen
 			int mm=cal.get(Calendar.MINUTE);
 			System.out.println(System.currentTimeMillis());
 			String s="echo debian | sudo -S date -s \""+yy+"-"+mo+"-"+da+" "+hh+":"+mm+"\"";
-			System.out.println(s);
 			try{ 
 				Process p=Runtime.getRuntime().exec(new String[]{"bash", "-c", s});
 			}
@@ -271,6 +295,9 @@ public class SchedulePane extends JPanel implements ActionListener, ChangeListen
 		}
 	}
 	
+	/**
+	 * Updates all defaults set on the Schedule tab.
+	 */
 	public void updateDefaults(){
 
 		Date d = (Date)lightsOn.getValue();
@@ -280,24 +307,19 @@ public class SchedulePane extends JPanel implements ActionListener, ChangeListen
 		Calendar c=Calendar.getInstance();
 		c.setTime(d); 
 		long t2=c.get(Calendar.MILLISECOND);
-		System.out.println("TWO TIMES: "+t+" "+t2);
 
-		System.out.println("LIGHTS ON: "+t);
 		defaults.setIntProperty("lightson", (int)t);
 
 		d = (Date)lightsOff.getValue();
 		t=d.getTime();
-		System.out.println("LIGHTS OFF: "+t);
 		defaults.setIntProperty("lightsoff", (int)t);
 
 		d = (Date)eStart.getValue();
 		t=d.getTime();
-		System.out.println("E ON: "+t);
 		defaults.setIntProperty("exptstart", (int)t);
 
 		d = (Date)eStop.getValue();
 		t=d.getTime();
-		System.out.println("E OFF: "+t);
 		defaults.setIntProperty("exptstop", (int)t);
 
 		d = (Date)maxHatchClosed.getValue();
@@ -311,6 +333,12 @@ public class SchedulePane extends JPanel implements ActionListener, ChangeListen
 		defaults.writeProperties();
 	}
 	
+	/**
+	 * Brings up dump data interface, which allows user to select
+	 * as many data dump timers as wanted, and then allows them to
+	 * set these timers.
+	 * TODO: Fix layout so timers can't fall off RPi touchscreen.
+	 */
 	public void setDumpData(){
 
 		

@@ -65,8 +65,12 @@ public class MotorPWMOutput extends DigitalIO {
 	}
 
 	
+	/* (non-Javadoc)
+	 * @see devices.DigitalIO#trigger(int)
+	 * @param a integer indicating which action is called
+	 */
 	public void trigger(int a){
-		//OPEN
+		//OPEN. Cancels securityTask timers.
 		if (a==0){
 			runMotor(forward, standardLength);
 			try{
@@ -78,7 +82,7 @@ public class MotorPWMOutput extends DigitalIO {
 			LogEvent le=new LogEvent(name, "Open", experimentName, experimentType, "unknownpin");
 			dbc.writeToDatabase(le);
 		}
-		//CLOSE
+		//CLOSE. Cancels previous securityTask timers and resets securityTaskOpen timer.
 		else if (a==1){
 			runMotor(back, standardLength);
 			LogEvent le=new LogEvent(name, "Close", experimentName, experimentType, "unknownpin");
@@ -92,7 +96,9 @@ public class MotorPWMOutput extends DigitalIO {
 			timerC.schedule(new SecurityTaskOpen(), maxTimeOut);
 			System.out.println("a==1");
 		}
-		//REWARDER
+		//REWARDER. Cancels previous securityTask timers and resets securityTaskOpen timer for 
+		//the maxTimeOut (set in SchedulePane) + pauseLength (rewarder open duration) +
+		//standardLength*2 (the time it takes for the hopper to physically open and close again).
 		else if (a==2){
 			runMotor(forward, standardLength, back, pauseLength);
 		//	System.out.println("pauseLength is: " + pauseLength);
@@ -107,7 +113,7 @@ public class MotorPWMOutput extends DigitalIO {
 			timerC.schedule(new SecurityTaskOpen(), maxTimeOut + pauseLength + (standardLength*2));
 			System.out.println("a==2");
 		}
-		//OPEN SECURITY TASK
+		//OPEN SECURITY TASK. Opens hopper and sets timer for SecurityTaskClose.
 		else if (a==3){
 			runMotor(forward, standardLength);
 			LogEvent le=new LogEvent(name, "SecurityTaskOpen", experimentName, experimentType, "unknownpin");
@@ -121,7 +127,7 @@ public class MotorPWMOutput extends DigitalIO {
 			timerD.schedule(new SecurityTaskClose(), defaults.getIntProperty("opentime"));
 			System.out.println("a==3");
 		}
-		//CLOSE SECURITY TASK
+		//CLOSE SECURITY TASK. Closes hopper and resets SecurityTaskOpen timer.
 		else if (a==4){
 			runMotor(back, standardLength);
 			LogEvent le=new LogEvent(name, "SecurityTaskClose", experimentName, experimentType, "unknownpin");

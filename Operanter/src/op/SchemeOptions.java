@@ -25,7 +25,7 @@ public class SchemeOptions extends JPanel implements ActionListener{
 	Scheme scheme;
 	Defaults defaults;
 	
-	String[] schemeTypes={"Go-No-Go Scheme", "First Scheme"};
+	String[] schemeTypes={"Go-No-Go Scheme", "First Scheme", "Sound Tester"}; //add "SoundTester"
 	JComboBox<String> schemas=new JComboBox<String>(schemeTypes);
 	JTextField schemeName;
 	LinkedList<String> schemes;
@@ -60,6 +60,7 @@ public class SchemeOptions extends JPanel implements ActionListener{
 		
 		JPanel topPanel=new JPanel(new FlowLayout());
 		
+		schemeTypeBox.setSelectedItem(defaults.getStringProperty("defaultscheme"));
 		schemeTypeBox.addActionListener(this);
 		topPanel.add(schemeTypeBox);
 		
@@ -180,6 +181,8 @@ public class SchemeOptions extends JPanel implements ActionListener{
 			op.updateUI();
 			this.scheme=op.getScheme();
 			createAndAddSchemePanel();
+			defaults.setStringProperty("defaultscheme", s);
+			System.out.println("Default scheme is: " + defaults.getStringProperty("defaultscheme"));
 		}
 		if (e.getSource()==add){
 			addScheme();
@@ -218,6 +221,21 @@ public class SchemeOptions extends JPanel implements ActionListener{
 				defaults.setStringList("schemes", schemes);
 				defaults.setStringProperty(s+"type", "FirstSch");
 				FirstSchema g=new FirstSchema(defaults, s);
+				g.setExperimentName(s);
+				g.writeToDefaults();
+				schemeModel.addElement(s);
+				op.loadScheme(s);
+				op.updateUI();
+				this.scheme=op.getScheme();
+				createPanel();
+			}
+			if (schemas.getSelectedIndex()==2){
+				op.unloadScheme();
+				String s=schemeName.getText();
+				schemes.add(s);
+				defaults.setStringList("schemes", schemes);
+				defaults.setStringProperty(s+"type", "SoundTest");
+				SoundTester g=new SoundTester(defaults, s);
 				g.setExperimentName(s);
 				g.writeToDefaults();
 				schemeModel.addElement(s);

@@ -26,16 +26,10 @@ public class GoNoGoSchema extends Scheme {
 		
 		Pin pin0=RaspiPin.GPIO_29;
 		Pin pin1=RaspiPin.GPIO_28;
-		//Pin motorPin=RaspiPin.GPIO_01;
-		//Pin[] rewardPins={RaspiPin.GPIO_02, RaspiPin.GPIO_04, RaspiPin.GPIO_03, RaspiPin.GPIO_00, RaspiPin.GPIO_05, RaspiPin.GPIO_06};
-		//int outputSocket=1;
 		
 		dos[0]=new DigitalOutput(pin0, "LED 1", experimentName, type, defaults);
 		dos[1]=new DigitalOutput(pin1, "LED 2", experimentName, type, defaults);
-		//dos[2]=new DigitalOutput(motorPin, "rewarder", experimentName, defaults);
-		//dos[2]=new EnergeniePiMote(rewardPins, outputSocket, "punisher", experimentName, defaults);
-		dos[2]=defaultPiMote;
-		//mps[0]=new MotorPWMOutput(motorPin, "rewarder", experimentName, defaults);
+		dos[2]=defaultLight;
 		
 		mps[0]=defaultFoodHatch;
 

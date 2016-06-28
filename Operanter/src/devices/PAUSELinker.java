@@ -31,11 +31,11 @@ public class PAUSELinker extends Linker{
         pauseLength=x;    
     }
     
-    public void setUniformDistributionPause(int minimumPause, int maximumPause){
-        pauseType=UNIFORM_DIST_PAUSE;
-        pauseBoundaries[0]=minimumPause;
-        pauseBoundaries[1]=maximumPause-minimumPause;    
-    }
+//    public void setUniformDistributionPause(int minimumPause, int maximumPause){
+//        pauseType=UNIFORM_DIST_PAUSE;
+//        pauseBoundaries[0]=minimumPause;
+//        pauseBoundaries[1]=maximumPause-minimumPause;    
+//    }
     
     
     public int getPause(){
@@ -44,7 +44,7 @@ public class PAUSELinker extends Linker{
             return pauseLength;
         }
         else if (pauseType==UNIFORM_DIST_PAUSE){
-            int x=random.nextInt(pauseBoundaries[1]);
+            int x=random.nextInt(pauseBoundaries[1]-pauseBoundaries[0]); //MM added -pauseBoundaries[0]. Does setUniformDistributionPause() even get used???
             return x+pauseBoundaries[0];
         }
         return 0;
@@ -81,12 +81,16 @@ public class PAUSELinker extends Linker{
         public void run(){
             try{
                 System.out.println("PAUSING FOR "+t+"ms");
+            	System.out.println("Outputs Length is: " + outputs.length); //giving me 2
                 Thread.sleep(t);
                 if (active){
                     for (int i=0; i<outputs.length; i++){
-                        outputs[i].trigger(triggerCodes[i]);
+                    	System.out.println("outputs[i] is: " + outputs[i]); //giving me "null"
+                        outputs[i].trigger(triggerCodes[i]); //NullPointerException
                     }
+                    System.out.println("left for loop");
                 }
+                System.out.println("left if statement");
             }
             catch (Exception e) {
                 e.printStackTrace();

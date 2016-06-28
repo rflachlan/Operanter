@@ -18,12 +18,14 @@ import com.pi4j.io.gpio.RaspiPin;
 import com.pi4j.io.gpio.Pin;
 
 import db.DatabaseConnection;
-import devices.EnergeniePiMote;
+import devices.DigitalOutput;
 import devices.MotorPWMOutput;
 
 import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.Toolkit;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -33,6 +35,7 @@ import javax.swing.JFrame;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.ImageIcon;
+import javax.swing.WindowConstants;
 
 import schemes.*;
 
@@ -52,25 +55,19 @@ public class Operanter {
 	Timer stopTimer=new Timer();
 	Timer dumpTimer=new Timer();
 	
-	EnergeniePiMote epm;
+	DigitalOutput light;
 	MotorPWMOutput mpo;
 	UserInterface ui; 
 
 	
+    /**
+     * Called by the main method. Sets up JFrame and triggers motor.
+     */
     public void start(){
-    	//try {
-			//UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-		//} catch (ClassNotFoundException | InstantiationException
-			//	| IllegalAccessException | UnsupportedLookAndFeelException e) {
-			// TODO Auto-generated catch block
-			//e.printStackTrace();
-		//}
+
     	UIManager.put("Spinner.arrowButtonSize", new Dimension(200, 5));
-  //  	System.out.println("SETTING UP");
     	setUp();
-   // 	System.out.println("SCHEDULING TIMERS");
     	scheduleTimers();
-   // 	System.out.println("MAKING UI");
     	ui=makeNewUI();
     	
     	JFrame f=new JFrame("Operanter");
@@ -86,9 +83,19 @@ public class Operanter {
 		}
 		
 		mpo.trigger(0);
+		
+		f.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+		f.addWindowListener(new WindowAdapter(){
+			public void windowClosing(WindowEvent e){
+				ui.shutDown();
+			}
+		});
 	
     }
 	
+	/**
+	 * Called by start() method. Sets default lights, motor.
+	 */
 	public void setUp(){
 		System.getProperty("java.version");
 		System.getProperty("java.runtime.version");
@@ -101,7 +108,6 @@ public class Operanter {
 			final GpioController gpio = GpioFactory.getInstance();
 			defaults.gpio=gpio;
 			defaults.virtualMode=false;
-			//System.out.println("Here ok");
 		}
 		catch(Exception e){
 			e.printStackTrace();
@@ -115,11 +121,9 @@ public class Operanter {
 		defaults.dbc=dbc;
 		defaults.sc=sc;
 		
-		Pin[] pins={RaspiPin.GPIO_02, RaspiPin.GPIO_04, RaspiPin.GPIO_03, RaspiPin.GPIO_00, RaspiPin.GPIO_05, RaspiPin.GPIO_06};
-		int outputSocket=1;
-		epm=new EnergeniePiMote(pins, outputSocket, "lights", " ", " ", defaults);
-		
-		defaults.setPiMote(epm);
+		Pin lightPin=RaspiPin.GPIO_16;
+		light=new DigitalOutput(lightPin, "lights", " ", " ", defaults);
+		defaults.setLights(light);
 		
 		Pin motorPin=RaspiPin.GPIO_01;
 		mpo=new MotorPWMOutput(motorPin, "rewarder", " ", " ", defaults);
@@ -127,8 +131,15 @@ public class Operanter {
 
 
 		LinkedList<String>schemes=defaults.getSchemeIDs();
-		String s=schemes.get(0);
-		loadScheme(s);
+		String s=defaults.getStringProperty("defaultscheme");
+		String s2=schemes.get(0);
+		System.out.println("String s in setUp() is: " + s2);
+		if (s!=null){
+			loadScheme(s);
+		}
+		else{
+			loadScheme(s2);
+		}
 		System.out.println("CHECK NAME: "+scheme.getExperimentName());
 	
 
@@ -144,8 +155,10 @@ public class Operanter {
 			scheme=new GoNoGoSchema(defaults, s);
 		}
 		else if (qt.equals("FirstTrainingDay")){
-		//	System.out.println("THIS IS A FIRST SCHEME");
 			scheme=new FirstSchema(defaults, s);
+		}
+		else if (qt.equals("SoundTester")){
+			scheme=new SoundTester(defaults, s);
 		}
 		scheme.setExperimentName(s);
 		scheme.loadFromDefaults();
@@ -167,6 +180,14 @@ public class Operanter {
 		ui.update();
 	}
 	
+	public void dataDump(){
+		dbc.dumpData();
+	}
+	
+	/**
+	 * Schedules timers saved in defaults. Also called by SchedulePane to 
+	 * reset timers.
+	 */
 	public void scheduleTimers(){
 		try{
 			onTimer.cancel();
@@ -175,7 +196,6 @@ public class Operanter {
 			stopTimer.cancel();
 			dumpTimer.cancel();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -282,13 +302,9 @@ public class Operanter {
 			
 		
 		} catch (ParseException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
-	//	Pin motorPin=RaspiPin.GPIO_01;
-	//	mpo=new MotorPWMOutput(motorPin,"rewarder", " ", " ", defaults);
-	//	mpo.trigger(0);
 	}
 	
 	class OnTask extends TimerTask{
@@ -323,11 +339,11 @@ public class Operanter {
 	}
 	
 	public void switchOn(){
-		epm.switchOn();
+		light.switchOn();
 	}
 	
 	public void switchOff(){
-		epm.switchOff();
+		light.switchOff();
 	}
 	
 	
@@ -348,19 +364,17 @@ public class Operanter {
 		System.out.println("Stopping experiment");
 		scheme.stopRecording();
 	}
-	
-//	public void saveResults(){
-//		
-//	}
-	
-	
-	
+		
 	public UserInterface makeNewUI(){
 		UserInterface ui=new UserInterface(this, defaults);
 		dbc.doWriteText(ui);
 		return ui;
 	}
 	
+	/**
+	 * Main method.
+	 * @param args
+	 */
 	public static void main (String[] args ){
 		try{			
 			(new Operanter()).start();
